@@ -1,0 +1,26 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install goatty-plugin
+        run: cargo install --git https://github.com/goatty-dev/goatty --locked goatty-plugin
+      - name: Validate the manifest
+        run: goatty-plugin validate .
+      - name: Show what goatty would generate
+        run: goatty-plugin render .
+      - name: Download every asset and check its sha256
+        run: goatty-plugin check-downloads .
+      - name: Syntax-check shell files
+        run: |
+          sudo apt-get install -y zsh >/dev/null
+          for f in $(find . -name '*.zsh' -not -path './.git/*'); do zsh -n "$f"; done

@@ -1,0 +1,234 @@
+# A goatty plugin: everything goatty needs to install a tool, show its
+# settings in the settings window, and wire it into goatty's shell.
+#
+# This template is a complete, working plugin for fd (a fast, friendly
+# `find`). Copy the repository, then replace fd with your tool. Every
+# section is explained; delete what you don't need.
+#
+# Format reference: https://github.com/goatty-dev/goatty/blob/main/docs/plugins.md
+# Check your work:  goatty-plugin validate .   (and: render, check-downloads)
+
+# --- Who and what --------------------------------------------------------------
+
+schema = 1                 # manifest format version; goatty refuses newer ones
+id = "fd"                  # stable id: lowercase letters, digits, '-' (the directory name in the registry)
+name = "fd"                # display name
+version = "1.0.0"          # the PLUGIN's version (semver). Bump it whenever anything here changes.
+summary = "A fast, friendly find: `fd name` instead of `find . -iname '*name*'`"
+# A few sentences for the details view: what the tool is, why you'd want it.
+# Write for someone who has never heard of it.
+description = """
+fd finds files by name. It's fast, ignores what your .gitignore ignores, \
+uses colors, and has sensible defaults: `fd readme` finds every README below \
+the current directory, `fd -e md` every Markdown file.
+"""
+publisher = "your-github-name"         # who maintains this plugin (you), not the tool's author
+homepage = "https://github.com/sharkdp/fd"
+license = "MIT OR Apache-2.0"          # the TOOL's license (SPDX)
+keywords = ["find", "search", "files"] # help people find it in goatty's plugin search
+# category = "environment"             # default; "prompt" for prompt modules
+
+[compat]
+goatty = ">=0.0.1"         # semver requirement on goatty's version
+os = ["linux"]             # where your packages have builds (linux, macos)
+# shells = ["zsh"]         # default
+
+# [requires]
+# commands = ["docker"]    # programs the user must already have (goatty won't install them);
+#                          # the integration stays off without them
+# plugins = ["fzf"]        # other plugins that must be installed first
+
+# --- The program goatty downloads ----------------------------------------------
+#
+# goatty downloads into its own directory (~/.local/share/goatty/tools) and
+# links `bin` into ~/.local/share/goatty/bin, which only goatty shells have on
+# PATH. Never system-wide, never with sudo. If the program is already on the
+# user's PATH, goatty uses that copy instead (prefer_system = false to always
+# download).
+#
+# Rules: official release assets of the tool's own project, https only,
+# releases at least two weeks old, static (musl) builds where they exist.
+# `goatty-plugin hash <url>` prints the sha256, the size and the executables
+# in the archive; compare the sha256 with upstream's (GitHub shows a
+# "sha256:" digest next to every release asset).
+
+[[package]]
+id = "fd"                  # directory under tools/
+version = "10.5.0"         # the TOOL's version
+bin = ["fd"]               # executables, relative to the asset's root; linked as bin/<file name>
+
+[[package.asset]]
+target = "x86_64-linux"    # x86_64-linux, aarch64-linux, x86_64-macos, aarch64-macos, or "any"
+url = "https://github.com/sharkdp/fd/releases/download/v10.5.0/fd-v10.5.0-x86_64-unknown-linux-musl.tar.gz"
+sha256 = "761c72dc8e120d85b22292063be8a796e2eeb20eb3e4f38b8fa2343ccf3514a7"
+size = 1573549             # bytes, shown before installing
+root = "fd-v10.5.0-x86_64-unknown-linux-musl"   # directory inside the archive ("" = top level)
+# format = "tar.gz"        # default; "binary" when the download IS the executable
+
+[[package.asset]]
+target = "aarch64-linux"
+url = "https://github.com/sharkdp/fd/releases/download/v10.5.0/fd-v10.5.0-aarch64-unknown-linux-musl.tar.gz"
+sha256 = "d76c4317f7d5dba69f8a2a15856c90c777e7f0dd4e85f0de8c76de6992c374d4"
+size = 1429078
+root = "fd-v10.5.0-aarch64-unknown-linux-musl"
+
+# --- Settings ------------------------------------------------------------------
+#
+# Each [[setting]] becomes a control in goatty's settings window (Plugins page)
+# and a key in host.json (plugins.fd.settings.<id>). goatty renders the right
+# control for the type and checks values, so a typo can't break a shell.
+#
+# Types: bool (toggle), choice (buttons/list), integer (stepper; min/max/step/unit),
+#        string, path (~ is the home directory), list (comma-separated in the GUI).
+#
+# Pick the handful of options that matter, and explain each one in plain words
+# in `help`. That's what makes a tool approachable.
+#
+# `arg` is the command-line argument the setting adds. It's used through the
+# templates in [[alias]] args, [[env]] values and [[file]] lines:
+#   {args}       every setting's argument, in this file's order (a whole list item)
+#   {<id>.arg}   one setting's argument(s) (a whole list item; may be empty)
+#   {<id>}       the value itself (bools: true/false; lists: joined with `separator`)
+#   {value}      inside a setting's own `arg`
+#   {{ and }}    literal braces
+# goatty quotes everything it generates: a value can never become shell code.
+
+[[setting]]
+id = "hidden"
+label = "Include hidden files"
+help = "Also search files and folders whose names start with a dot (like .config)."
+type = "bool"
+default = false
+arg = "--hidden"           # added when on
+group = "What to search"   # optional heading
+
+[[setting]]
+id = "ignore"
+label = "Respect .gitignore"
+help = "Skip what your .gitignore, .ignore and .fdignore files exclude (build output, node_modules, …). Off: search everything."
+type = "bool"
+default = true
+arg_off = "--no-ignore"    # bools can also add an argument when OFF
+group = "What to search"
+
+[[setting]]
+id = "follow"
+label = "Follow symlinks"
+help = "Descend into folders that are symbolic links."
+type = "bool"
+default = false
+arg = "--follow"
+group = "What to search"
+
+[[setting]]
+id = "exclude"
+label = "Always skip"
+help = "Folders or patterns to leave out of every search, like .git or *.bak."
+type = "list"
+placeholder = ".git, target, *.bak"
+arg = "--exclude={value}"  # lists add the argument once per entry
+group = "What to search"
+
+[[setting]]
+id = "color"
+label = "Colors"
+help = "Color file names by type."
+type = "choice"
+default = "auto"
+arg = "--color={value}"
+group = "Look"
+choices = [
+  { value = "auto", label = "Automatic", help = "In the terminal; plain when the output goes to another command." },
+  { value = "always", label = "Always" },
+  { value = "never", label = "Never" },
+]
+
+[[setting]]
+id = "fzf_files"
+label = "Use fd for fzf"
+help = "If you use fzf, make Ctrl+T and fzf's file list come from fd: faster, and with the options above."
+type = "bool"
+default = true
+group = "Integration"
+
+[[setting]]
+id = "fcd"
+label = "fcd command"
+help = "Adds `fcd`: pick a folder below the current one with fzf and cd into it (needs fzf)."
+type = "bool"
+default = false
+group = "Integration"
+advanced = true            # behind "Show advanced settings"
+
+# Other types, for reference:
+#
+# [[setting]]
+# id = "depth"
+# label = "Search depth"
+# help = "How many folder levels deep to search."
+# type = "integer"
+# default = 10
+# min = 1
+# max = 100
+# unit = "levels"
+# arg = "--max-depth={value}"
+
+# --- How the settings reach the tool ---------------------------------------------
+#
+# Prefer these over shell code: goatty generates and quotes them itself.
+# `when` limits an entry to a setting: "id" (bool on), "!id" (off),
+# "id=value", "id!=value".
+
+# Aliases are defined only when `command` is installed. It must be one of
+# this plugin's executables or a required command.
+[[alias]]
+name = "fd"
+command = "fd"
+args = ["{args}"]
+description = "fd with the options chosen in goatty's settings"
+
+# Environment variables, exported in every goatty shell (before completion).
+[[env]]
+name = "FZF_DEFAULT_COMMAND"
+value = "fd --type=file --strip-cwd-prefix {hidden.arg} {ignore.arg} {follow.arg}"
+when = "fzf_files"
+
+[[env]]
+name = "FZF_CTRL_T_COMMAND"
+value = "fd --type=file --strip-cwd-prefix {hidden.arg} {ignore.arg} {follow.arg}"
+when = "fzf_files"
+
+# A config file goatty generates into its shell configuration, optionally
+# pointed at by a variable (fd doesn't read one, so this is commented out):
+#
+# [[file]]
+# name = "config"
+# env = "MYTOOL_CONFIG"
+# format = "lines"          # one template per line; or "text" with `template = """..."""`
+# lines = ["{args}"]
+
+# --- Shell code (only when you really need it) -----------------------------------
+#
+# A zsh file shipped with the plugin, sourced in every goatty shell after
+# goatty's own features. It's the one place a plugin runs its own code, so
+# goatty shows it in full before installing (`shell-code` permission) and
+# registry reviewers read every line. While it runs, $goatty_settings[<id>]
+# holds each setting's value and $goatty_plugin_dir the plugin's directory.
+# Rules: no downloads, no network, no output at startup, no writes outside
+# ~/.cache/goatty, nothing slow.
+
+[zsh]
+init = "zsh/init.zsh"
+when = "fcd"               # only when the setting is on
+# fpath = ["zsh/completions"]   # directories with completion functions (added before compinit)
+
+# --- Permissions -----------------------------------------------------------------
+#
+# goatty derives what a plugin may do from this file: [[package]] means
+# `binaries`, zsh.init means `shell-code` (aliases, env and files are listed
+# automatically). Say WHY for the powerful ones; validation fails without it.
+# `network` is yours to declare if the tool itself talks to the internet.
+
+[permissions]
+binaries = "fd is a program: goatty downloads its official release from GitHub (sharkdp/fd) and checks it against the pinned checksum."
+shell-code = "defines the optional `fcd` function (pick a folder with fzf, then cd); nothing runs until you call it."
