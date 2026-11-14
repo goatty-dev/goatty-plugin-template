@@ -32,7 +32,7 @@ A goatty plugin is a declarative `plugin.toml` (+ optional zsh files). goatty do
    - environment variables → `[[env]]` with `value = "{setting}"` and `when` conditions;
    - a config file → `[[file]]` (`format = "lines"` with `lines = ["{args}"]`, or `"text"` with a `template`) and `env = "TOOL_CONFIG_VAR"`;
    - only if the tool needs it, `[zsh] init = "zsh/init.zsh"`: read settings from `${goatty_settings[id]}` while it runs (they're unset afterwards; capture what functions need). Keep it to the tool's own init (`eval "$(tool init zsh …)"`) or small function definitions. No network, no downloads, no output, no writes outside `${XDG_CACHE_HOME:-$HOME/.cache}/goatty`, nothing slow per prompt. Cache expensive generated code (see the registry's docker plugin).
-   - Completions: `zsh.fpath = ["zsh/completions"]` with `_tool` files shipped in the plugin.
+   - Completions: if the tool generates them (`tool completions zsh`, `--generate-completion zsh`, …), set `completions = ["tool", …]` in its `[[package]]`. Run it with an empty `$HOME` first: it must print a function starting with `#compdef` and write no files. Otherwise ship `_tool` files with `zsh.fpath = ["zsh/completions"]`.
    Templates: `{id}` value, `{id.arg}`/`{args}` arguments, `{value}` in a setting's own `arg`, `{{`/`}}` literal braces. Conditions: `id`, `!id`, `id=value`, `id!=value`.
 
 6. **Permissions.** `[permissions]` needs a one-sentence reason for `binaries` (any `[[package]]`), `shell-code` (any `zsh.init`) and `network` (declare it if the tool itself uses the network). Don't declare what the manifest doesn't use.

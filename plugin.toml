@@ -56,6 +56,11 @@ os = ["linux"]             # where your packages have builds (linux, macos)
 id = "fd"                  # directory under tools/
 version = "10.5.0"         # the TOOL's version
 bin = ["fd"]               # executables, relative to the asset's root; linked as bin/<file name>
+# Optional: a command that prints the tool's zsh completion function, starting
+# with one of `bin`. goatty runs it once after downloading its copy and keeps
+# the output as `_fd` on the shell's fpath (copies on the system bring their
+# own). Leave it out if the tool can't generate them.
+completions = ["fd", "--gen-completions", "zsh"]
 
 [[package.asset]]
 target = "x86_64-linux"    # x86_64-linux, aarch64-linux, x86_64-macos, aarch64-macos, or "any"
