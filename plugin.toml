@@ -212,6 +212,45 @@ when = "fzf_files"
 # format = "lines"          # one template per line; or "text" with `template = """..."""`
 # lines = ["{args}"]
 
+# --- Command palette entries (optional) ----------------------------------------
+#
+# A [[command]] shows in goatty's command palette (Ctrl+Shift+P) as
+# "<name>: <title>". Picking it asks for each [[command.input]] in turn
+# (label, placeholder, a check as you type, suggestions), then types the
+# `run` line into the focused terminal, where the user sees it run. The first
+# word must be one of this plugin's executables or a required command;
+# `{input}` puts a value in (quoted by goatty; an empty optional value as a
+# whole word is left out). Adds the `commands` permission (no reason needed).
+# Input types: text (with `pattern` + `pattern_help`), integer and number
+# (`min`, `max`), path and folder (`must_exist`; `~/` works), choice
+# (`choices = [{ value, label, help }]`). Also: `default`, `optional`, `help`.
+# Needs goatty with palette commands: set [compat] goatty accordingly.
+#
+# [[command]]
+# id = "find"                      # palette id: plugin.<plugin id>.find
+# title = "Find files by name"
+# keywords = ["search", "locate"]
+# run = ["fd", "--max-depth={depth}", "{pattern}", "{dir}"]
+#
+# [[command.input]]
+# id = "pattern"
+# label = "Name contains"
+# placeholder = "a regular expression, e.g. \\.rs$"
+#
+# [[command.input]]
+# id = "dir"
+# label = "In folder"
+# type = "folder"
+# default = "."
+#
+# [[command.input]]
+# id = "depth"
+# label = "How deep"
+# type = "integer"
+# min = 1
+# max = 20
+# default = "5"
+
 # --- Shell code (only when you really need it) -----------------------------------
 #
 # A zsh file shipped with the plugin, sourced in every goatty shell after
