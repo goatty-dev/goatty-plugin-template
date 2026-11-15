@@ -251,6 +251,51 @@ when = "fzf_files"
 # max = 20
 # default = "5"
 
+# A [[snippet]] shows in goatty's snippet picker (Ctrl+Shift+S): a command
+# line with {input} blanks that goatty asks for one at a time, then puts the
+# finished line on the prompt for the user to read and run (nothing runs by
+# itself). `line` is shell text; every {input} becomes ONE quoted word, so a
+# placeholder must not sit inside quotes. Inputs take the [[command.input]]
+# fields plus: `type = "flag"` with `on = "-H"` (yes inserts it), `multiple`
+# (several values, each its own word), and a `source`: a program of this
+# plugin (or a required command) whose output lines are suggestions, run by
+# goatty on the tab's host without a shell (`split`, `column`, `label`,
+# `detail`, `skip`, `on_fail`, `timeout`). `safety` (safe | changes |
+# destructive) is the badge; without it goatty guesses. Adds the `snippets`
+# permission, and a source adds `snippet-sources` (say why in [permissions]).
+# An [[expansion]] rewrites plain words on Space: `say` (at least two words,
+# {name} = one typed word) becomes `to`. Format: goatty's docs/snippets.md.
+# Needs goatty with snippets: set [compat] goatty accordingly.
+#
+# [[snippet]]
+# id = "find-hidden"
+# title = "Find files by name, hidden ones too"
+# description = "Lists matching files below a folder, including hidden and ignored ones."
+# tags = ["files", "search"]
+# safety = "safe"
+# line = "fd {hidden} {pattern} {dir}"
+#
+# [[snippet.input]]
+# id = "pattern"
+# label = "Name contains"
+#
+# [[snippet.input]]
+# id = "dir"
+# label = "In folder"
+# type = "folder"
+# default = "."
+#
+# [[snippet.input]]
+# id = "hidden"
+# label = "Include hidden and ignored files?"
+# type = "flag"
+# on = "--hidden --no-ignore"
+# default = "no"
+#
+# [[expansion]]
+# say = "| only file names"
+# to = "| xargs -n1 basename"
+
 # --- Shell code (only when you really need it) -----------------------------------
 #
 # A zsh file shipped with the plugin, sourced in every goatty shell after
