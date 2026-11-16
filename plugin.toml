@@ -226,11 +226,22 @@ when = "fzf_files"
 # (`choices = [{ value, label, help }]`). Also: `default`, `optional`, `help`.
 # Needs goatty with palette commands: set [compat] goatty accordingly.
 #
+# [command.menu] also puts the command in the terminal's right-click menu:
+# `icon` is one of goatty's icon names (search, file-text, folder-open, globe,
+# package, terminal, …), `when` is always / selection / prompt, and with
+# when = "selection" `fill` names the text or path input the selected text
+# fills in (still asked, so the user sees it). Needs a goatty with menus.
+#
 # [[command]]
 # id = "find"                      # palette id: plugin.<plugin id>.find
 # title = "Find files by name"
 # keywords = ["search", "locate"]
 # run = ["fd", "--max-depth={depth}", "{pattern}", "{dir}"]
+#
+# [command.menu]
+# icon = "search"
+# when = "selection"
+# fill = "pattern"
 #
 # [[command.input]]
 # id = "pattern"
