@@ -261,6 +261,34 @@ when = "fzf_files"
 # min = 1
 # max = 20
 # default = "5"
+#
+# A text input can also be a list to pick from: its [command.input.source]
+# runs a program on the tab's host when the input is asked (in the pane's
+# folder, without a shell, stopped after `timeout` seconds) and lists each
+# line it prints. `run` follows the rules of `run` above (earlier inputs may
+# be arguments); `split` + `column`/`label`/`detail` read columns, `skip`
+# header lines, `on_fail` is shown when it prints nothing. With
+# `strict = true` only the listed values are answers. Adds the
+# `snippet-sources` permission (say why in [permissions]). Needs a goatty
+# with command sources: set [compat] goatty accordingly.
+#
+# [[command]]
+# id = "find-in"
+# title = "Find files in a subfolder"
+# run = ["fd", "{pattern}", "{dir}"]
+#
+# [[command.input]]
+# id = "dir"
+# label = "Subfolder"
+# strict = true
+#
+# [command.input.source]
+# run = ["fd", "--type", "d", "--max-depth", "2"]
+# on_fail = "No subfolders here"
+#
+# [[command.input]]
+# id = "pattern"
+# label = "Name contains"
 
 # --- Shell code (only when you really need it) -----------------------------------
 #
