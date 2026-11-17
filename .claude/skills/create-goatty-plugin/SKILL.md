@@ -16,7 +16,7 @@ A goatty plugin is a declarative `plugin.toml` (+ optional zsh files). goatty do
    gh api "repos/OWNER/REPO/releases?per_page=8" --jq '.[] | select(.prerelease|not) | "\(.tag_name) \(.published_at)"'
    gh api repos/OWNER/REPO/releases/tags/TAG --jq '.assets[] | "\(.name) \(.size) \(.digest)"'
    ```
-   Prefer `x86_64-unknown-linux-musl` / `aarch64-unknown-linux-musl` (static). If only a glibc build exists for a target, use it and say so in a comment. Only `.tar.gz` archives or raw binaries (`format = "binary"`) are supported.
+   Prefer `x86_64-unknown-linux-musl` / `aarch64-unknown-linux-musl` (static). If only a glibc build exists for a target, use it and say so in a comment. Archives can be `.tar.gz` (the default), `.tar.xz`, `.tar.zst`, `.tar` or `.zip`: set `format` to match the URL (`goatty-plugin hash` prints it, and `validate` refuses a mismatch). A raw executable is `format = "binary"`. macOS builds go under `x86_64-macos` / `aarch64-macos`.
 
 3. **Hash and inspect each asset:** `goatty-plugin hash URL…`. The printed sha256 must equal upstream's digest (`sha256:…` from the API above, or the project's checksums file). The listed executables give `bin` and `root` (the directory inside the archive, `""` for the top level).
 
