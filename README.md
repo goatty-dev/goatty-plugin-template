@@ -6,6 +6,7 @@ A goatty plugin is one declarative file, [`plugin.toml`](plugin.toml), plus opti
 
 - **what to download**: release archives pinned by sha256, installed into goatty's own directory (never system-wide, never sudo) and put on `PATH` only in goatty shells;
 - **which settings to show**: each option with a label and a plain-words explanation, rendered as toggles, choices, steppers or text fields on goatty's Plugins settings page;
+- **zsh plugins**: a package can be a zsh script goatty sources (a distribution's copy first), loaded in the shell's startup at the slot you choose (`zsh.load`) and after the plugins you name (`zsh.after`);
 - **how settings reach the tool**: aliases, environment variables, a generated config file, or (only when needed) a small zsh file.
 
 goatty shows users all of this before installing: the downloads with their checksums, the permissions with your explanations, and the full text of any shell code.
