@@ -61,6 +61,9 @@ bin = ["fd"]               # executables, relative to the asset's root; linked a
 # the output as `_fd` on the shell's fpath (copies on the system bring their
 # own). Leave it out if the tool can't generate them.
 completions = ["fd", "--gen-completions", "zsh"]
+# If the package is a zsh plugin (a script to source, not a program), see
+# "A zsh plugin as a package" at the end of this file: `source` and
+# `system_paths` instead of (or next to) `bin`.
 
 [[package.asset]]
 target = "x86_64-linux"    # x86_64-linux, aarch64-linux, x86_64-macos, aarch64-macos, or "any"
@@ -350,6 +353,27 @@ when = "fzf_files"
 init = "zsh/init.zsh"
 when = "fcd"               # only when the setting is on
 # fpath = ["zsh/completions"]   # directories with completion functions (added before compinit)
+#
+# Where in the shell's startup the plugin's code goes (its aliases, `init`
+# and the package scripts it sources). Environment and `fpath` always come
+# first, before compinit. Most plugins keep the default; pick another slot
+# only when the tool must come before or after other code:
+#   load = "line-editor"   after compinit, before the prompt: tools that add
+#                          widgets and key bindings (fzf, autosuggestions)
+#   load = "prompt"        the prompt itself (Starship); without one goatty
+#                          sets a small prompt
+#   load = "normal"        the default: after the prompt, before the user's
+#                          own aliases and additions
+#   load = "last"          after everything, including the user's additions:
+#                          what must wrap every widget defined before it
+#                          (syntax highlighting)
+# load = "normal"
+# Inside a slot, plugins load in id order. `after` names plugins that must
+# load first when they're installed and on (a plugin in an earlier slot always
+# counts as loaded already; a cycle is broken, never hangs):
+# after = ["fzf"]
+# `init` always runs before the package scripts are sourced, so it can set the
+# variables a zsh plugin reads when it loads.
 
 # --- Permissions -----------------------------------------------------------------
 #
@@ -357,7 +381,53 @@ when = "fcd"               # only when the setting is on
 # `binaries`, zsh.init means `shell-code` (aliases, env and files are listed
 # automatically). Say WHY for the powerful ones; validation fails without it.
 # `network` is yours to declare if the tool itself talks to the internet.
+# A zsh plugin package (`source`) needs `binaries` too: it's downloaded code.
 
 [permissions]
 binaries = "fd is a program: goatty downloads its official release from GitHub (sharkdp/fd) and checks it against the pinned checksum."
 shell-code = "defines the optional `fcd` function (pick a folder with fzf, then cd); nothing runs until you call it."
+
+# --- A zsh plugin as a package (instead of, or next to, a program) -----------------
+#
+# Some tools are zsh plugins: a script that has to be sourced into the shell
+# (zsh-autosuggestions, zsh-you-should-use, zsh-history-substring-search).
+# Give the [[package]] a `source` and no `bin` (a package may have no
+# executables then). goatty unpacks it like any package, links it as
+# plugins/<package id>, and sources the script at the plugin's `zsh.load`
+# slot, after `zsh.init` ran. Remember `[permissions] binaries`. Older goatty
+# builds refuse `source`, `zsh.load` and `zsh.after`: set [compat] goatty.
+#
+# `system_paths` lists copies the distribution may already have installed;
+# goatty sources the first one that exists and downloads nothing. Only
+# absolute paths under /usr/, /opt/homebrew/, /opt/local/,
+# /run/current-system/sw/ and /nix/var/nix/profiles/ are allowed. List the
+# usual places per distribution. The downloaded copy is the fallback, so a
+# `[[package.asset]]` is still required (for a script collection: target =
+# "any", a source tarball, `root` = its top directory).
+#
+# [[package]]
+# id = "autosuggestions"
+# version = "0.7.1"
+# source = "zsh-autosuggestions.zsh"      # relative to the asset root
+# system_paths = [
+#   "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh",   # Arch
+#   "/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh",               # Debian, Fedora
+#   "/opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh",      # Homebrew
+#   "/run/current-system/sw/share/zsh-autosuggestions/zsh-autosuggestions.zsh",  # NixOS
+# ]
+#
+# [[package.asset]]
+# target = "any"
+# url = "https://github.com/zsh-users/zsh-autosuggestions/archive/refs/tags/v0.7.1.tar.gz"
+# sha256 = "0df7affff21cd87ed298e6a3970ed08a1dd66a6efa676454ee5b091ad503badf"
+# size = 29968
+# root = "zsh-autosuggestions-0.7.1"
+#
+# [zsh]
+# init = "zsh/init.zsh"      # e.g. `typeset -g ZSH_AUTOSUGGEST_STRATEGY=(history)`, read when the script loads
+# load = "line-editor"       # it wraps widgets, so after the ones that define them
+# after = ["fzf"]
+#
+# [permissions]
+# binaries = "zsh-autosuggestions is a zsh plugin: unless your distribution's copy is installed, goatty downloads its release tarball from GitHub."
+# shell-code = "Sets the plugin's options before it loads."
