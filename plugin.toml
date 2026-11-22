@@ -293,6 +293,30 @@ when = "fzf_files"
 # [[command.input]]
 # id = "pattern"
 # label = "Name contains"
+#
+# Instead of `run`, a command can send `keys` to the program running in the
+# focused pane (an editor, a REPL, any TUI; goatty#240): text with vim-style
+# key names (<Esc>, <Enter>, <Tab>, <BS>, <Up>, <F5>, <C-c>, <M-x>, <S-Tab>;
+# <lt> for a literal <) and {input} values, typed as text. [command.pane]
+# says where it applies: `programs` (one of these runs in the foreground)
+# and/or `at = "prompt"` / `at = "program"`. Elsewhere the command is hidden
+# and a shortcut bound to it is an ordinary key. The install plan lists the
+# keys and where they go. Needs a goatty with pane keys: set [compat] goatty
+# accordingly.
+#
+# [[command]]
+# id = "quit-vim"
+# title = "Exit Vim"
+# keys = ["<Esc>", ":{how}", "<Enter>"]
+#
+# [command.pane]
+# programs = ["vim", "nvim"]
+#
+# [[command.input]]
+# id = "how"
+# label = "How"
+# type = "choice"
+# choices = [{ value = "q", label = "Quit" }, { value = "wq", label = "Save and quit" }]
 
 # A [[snippet]] shows in goatty's snippet picker (Ctrl+Shift+S): a command
 # line with {input} blanks that goatty asks for one at a time, then puts the
