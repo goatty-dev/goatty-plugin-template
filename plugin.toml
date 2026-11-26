@@ -30,8 +30,8 @@ keywords = ["find", "search", "files"] # help people find it in goatty's plugin 
 
 [compat]
 goatty = ">=0.0.1"         # semver requirement on goatty's version
-os = ["linux"]             # where your packages have builds (linux, macos)
-# shells = ["zsh"]         # default
+os = ["linux"]             # where your packages have builds (linux, macos, windows)
+# shells = ["zsh"]         # default; add "powershell" for Windows (goatty's managed shell there)
 
 # [requires]
 # commands = ["docker"]    # programs the user must already have (goatty won't install them);
@@ -59,14 +59,21 @@ bin = ["fd"]               # executables, relative to the asset's root; linked a
 # Optional: a command that prints the tool's zsh completion function, starting
 # with one of `bin`. goatty runs it once after downloading its copy and keeps
 # the output as `_fd` on the shell's fpath (copies on the system bring their
-# own). Leave it out if the tool can't generate them.
+# own). Leave it out if the tool can't generate them. For PowerShell goatty
+# swaps `zsh`, `complete-zsh` and `--shell=zsh` for the PowerShell names; a
+# tool that names shells its own way gets one command per shell:
+#   completions = { zsh = ["bat", "--completion", "zsh"], powershell = ["bat", "--completion", "ps1"] }
 completions = ["fd", "--gen-completions", "zsh"]
+# A multi-call program (busybox, Microsoft's coreutils; one `bin`) can be put
+# on PATH under more names, so programs like xargs find them too:
+#   applets = ["ls", "cat", "head"]
 # If the package is a zsh plugin (a script to source, not a program), see
 # "A zsh plugin as a package" at the end of this file: `source` and
 # `system_paths` instead of (or next to) `bin`.
 
 [[package.asset]]
-target = "x86_64-linux"    # x86_64-linux, aarch64-linux, x86_64-macos, aarch64-macos, or "any"
+target = "x86_64-linux"    # x86_64/aarch64 × linux/macos/windows, or "any"; Windows on ARM
+#                            takes x86_64-windows (emulated) when there's no aarch64-windows build
 url = "https://github.com/sharkdp/fd/releases/download/v10.5.0/fd-v10.5.0-x86_64-unknown-linux-musl.tar.gz"
 sha256 = "761c72dc8e120d85b22292063be8a796e2eeb20eb3e4f38b8fa2343ccf3514a7"
 size = 1573549             # bytes, shown before installing
@@ -168,6 +175,14 @@ type = "bool"
 default = false
 group = "Integration"
 advanced = true            # behind "Show advanced settings"
+
+# Only on some hosts: `os` and `shells` on a setting (and on [[alias]],
+# [[env]], [[file]], [[command]], [[snippet]]) keep it to those, so Windows
+# doesn't show a toggle that only works on Unix. Whatever tests a left-out
+# setting in `when` is left out with it.
+#   os = ["linux", "macos"]
+#   shells = ["zsh"]
+# A list joined for a PATH-like variable: separator = "path" (":", or ";" on Windows).
 
 # Other types, for reference:
 #
@@ -432,7 +447,8 @@ shell-code = "defines the optional `fcd` function (pick a folder with fzf, then 
 # [[package]]
 # id = "autosuggestions"
 # version = "0.7.1"
-# source = "zsh-autosuggestions.zsh"      # relative to the asset root
+# source = "zsh-autosuggestions.zsh"      # relative to the asset root (or a .ps1/.psm1 for
+#                                         # PowerShell: dot-sourced/imported; compat.shells needs "powershell")
 # system_paths = [
 #   "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh",   # Arch
 #   "/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh",               # Debian, Fedora
